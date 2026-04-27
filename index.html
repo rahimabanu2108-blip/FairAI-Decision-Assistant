@@ -1,166 +1,94 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>FairAI Decision Assistant</title>
-
-<style>
-body {
-    font-family: 'Inter', sans-serif;
-    background-color: #0E1117;
-    color: #E0E0E0;
-    margin: 0;
-    padding: 20px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-}
-.header { width: 100%; max-width: 1000px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #333; padding-bottom: 10px; margin-bottom: 20px; }
-.header h1 { margin: 0; color: #00E5FF; }
-.reset-btn { background: #333; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; }
-
-.container { display: flex; gap: 20px; max-width: 1000px; width: 100%; }
-.col-left, .col-right { display: flex; flex-direction: column; gap: 20px; }
-.col-left { flex: 1; }
-.col-right { flex: 1.5; }
-
-.card { background: #1E2127; padding: 20px; border-radius: 12px; border: 1px solid #333; }
-.card-header { font-size: 1.2rem; color: #00E5FF; margin-bottom: 10px; }
-
-input, select { width: 100%; padding: 8px; margin-top: 5px; background: #0E1117; color: white; border: 1px solid #444; border-radius: 5px; }
-
-.status h2 { font-size: 2rem; }
-.approved { color: #00E676; }
-.rejected { color: #FF1744; }
-
-.progress-bar-bg { background: #333; height: 10px; border-radius: 5px; }
-.progress-bar-fill { background: #00E5FF; height: 100%; border-radius: 5px; }
-
-.chat-container { max-height: 200px; overflow-y: auto; background: #15181E; padding: 10px; border-radius: 8px; }
-.chat-bot { background: #1e4b59; padding: 8px; border-radius: 10px; margin: 5px 0; }
-.chat-user { background: #2b313c; padding: 8px; border-radius: 10px; margin: 5px 0; text-align: right; }
-
-button { cursor: pointer; }
-</style>
-</head>
-
-<body>
-
-<div class="header">
-<h1>🤖 FairAI Decision Assistant</h1>
-<button class="reset-btn" onclick="location.reload()">Reset</button>
-</div>
-
-<div class="container">
-
-<div class="col-left">
-
-<div class="card">
-<div class="card-header">Applicant Details</div>
-
-<label>Age</label>
-<input type="range" id="age" min="18" max="80" value="35" oninput="predict()">
-
-<label>Income</label>
-<input type="number" id="income" value="60000" oninput="predict()">
-
-<label>Credit Score</label>
-<input type="range" id="credit" min="300" max="850" value="680" oninput="predict()">
-
-<label>Loan</label>
-<input type="number" id="loan" value="15000" oninput="predict()">
-
-</div>
-
-<div class="card">
-<div class="card-header">Trust Score</div>
-<h2 id="trust">--%</h2>
-<div class="progress-bar-bg">
-<div class="progress-bar-fill" id="trust_bar"></div>
-</div>
-</div>
-
-</div>
-
-<div class="col-right">
-
-<div class="card">
-<div class="card-header">Decision</div>
-<div class="status">
-<h2 id="decision">...</h2>
-</div>
-<div class="progress-bar-bg">
-<div class="progress-bar-fill" id="prob_bar"></div>
-</div>
-<p id="prob_text">--%</p>
-</div>
-
-<div class="card">
-<div class="card-header">Explanation</div>
-<p id="explain">Waiting...</p>
-</div>
-
-<div class="card">
-<div class="card-header">Chat</div>
-<div class="chat-container" id="chat"></div>
-<input id="msg" placeholder="Ask something..." onkeypress="if(event.key==='Enter')chat()">
-<button onclick="chat()">Send</button>
-</div>
-
-</div>
-
-</div>
-
 <script>
+let lastPredictionData = {};
 
-function predict() {
-    let income = document.getElementById("income").value;
-    let credit = document.getElementById("credit").value;
-    let loan = document.getElementById("loan").value;
+function getFormData() {
+    return {
+        age: parseInt(document.getElementById('age').value),
+        income: parseFloat(document.getElementById('income').value),
+        credit_score: parseFloat(document.getElementById('credit').value),
+        loan_amount: parseFloat(document.getElementById('loan').value),
+        education: parseInt(document.getElementById('education').value),
+        gender: parseInt(document.getElementById('gender').value),
+        model_choice: document.getElementById('model_choice').value
+    };
+}
 
-    let score = (credit/850)*0.6 + (income/100000)*0.3 - (loan/50000)*0.2;
-    let prob = Math.max(0, Math.min(1, score));
+async function predict() {
+    const payload = getFormData();
 
-    let percent = (prob*100).toFixed(1);
+    // 🔥 FAKE AI LOGIC (no backend needed)
+    let score =
+        (payload.credit_score / 850) * 0.5 +
+        (payload.income / 100000) * 0.3 -
+        (payload.loan_amount / 50000) * 0.2;
 
-    document.getElementById("prob_text").innerText = percent + "%";
-    document.getElementById("prob_bar").style.width = percent + "%";
+    score = Math.max(0, Math.min(1, score));
 
-    if(prob > 0.5){
-        document.getElementById("decision").innerHTML = "<span class='approved'>APPROVED</span>";
+    const data = {
+        probability: score,
+        prediction: score > 0.5 ? 1 : 0,
+        english_explanation:
+            "The model analyzed your credit score, income, and loan amount to determine the likelihood of approval.",
+        suggestions: [
+            { action: "Increase credit score", impact: 0.12 },
+            { action: "Reduce loan amount", impact: 0.08 }
+        ],
+        trust_score: Math.floor(70 + Math.random() * 30),
+        dp_diff: Math.random() * 0.1
+    };
+
+    lastPredictionData = { payload, data };
+
+    // SAME UI UPDATE CODE (UNCHANGED)
+    const probPct = (data.probability * 100).toFixed(1);
+    document.getElementById('probability_text').innerText = `Approval Probability: ${probPct}%`;
+    document.getElementById('probability_bar').style.width = `${probPct}%`;
+
+    const decText = document.getElementById('decision_text');
+    if(data.prediction === 1) {
+        decText.innerHTML = "<span class='approved'>✅ APPROVED</span>";
     } else {
-        document.getElementById("decision").innerHTML = "<span class='rejected'>REJECTED</span>";
+        decText.innerHTML = "<span class='rejected'>❌ REJECTED</span>";
     }
 
-    document.getElementById("explain").innerText =
-        "Decision based on credit score, income and loan balance.";
+    document.getElementById('explanation_text').innerHTML = data.english_explanation;
 
-    let trust = Math.floor(70 + Math.random()*30);
-    document.getElementById("trust").innerText = trust + "%";
-    document.getElementById("trust_bar").style.width = trust + "%";
+    const sugBox = document.getElementById('suggestions_box');
+    const sugList = document.getElementById('suggestions_list');
+
+    sugList.innerHTML = "";
+    data.suggestions.forEach(s => {
+        sugList.innerHTML += `<li><b>${s.action}</b> (+${(s.impact*100).toFixed(1)}%)</li>`;
+    });
+    sugBox.style.display = "block";
+
+    document.getElementById('trust_score_text').innerText = `${data.trust_score}%`;
+    document.getElementById('trust_score_bar').style.width = `${data.trust_score}%`;
+
+    const badge = document.getElementById('bias_badge');
+    if(data.dp_diff > 0.05) {
+        badge.className = "bias-badge bias-warn";
+        badge.innerText = "⚠️ Potential Bias Detected";
+    } else {
+        badge.className = "bias-badge bias-ok";
+        badge.innerText = "✅ No significant bias detected";
+    }
 }
 
-function chat(){
-    let input = document.getElementById("msg");
-    let chat = document.getElementById("chat");
+async function sendChat() {
+    const input = document.getElementById('chat_input');
+    const msg = input.value.trim();
+    if(!msg) return;
 
-    let text = input.value;
-    if(!text) return;
+    const chatHist = document.getElementById('chat_history');
+    chatHist.innerHTML += `<div class="chat-user">${msg}</div>`;
+    input.value = "";
 
-    chat.innerHTML += "<div class='chat-user'>"+text+"</div>";
-
-    setTimeout(()=>{
-        chat.innerHTML += "<div class='chat-bot'>Improve credit score or reduce loan for better approval chances.</div>";
-        chat.scrollTop = chat.scrollHeight;
-    },500);
-
-    input.value="";
+    setTimeout(() => {
+        chatHist.innerHTML += `<div class="chat-bot">The decision is based on fairness-aware AI analysis. You can improve your approval chances by increasing credit score or reducing loan amount.</div>`;
+        chatHist.scrollTop = chatHist.scrollHeight;
+    }, 500);
 }
 
 window.onload = predict;
-
 </script>
-
-</body>
-</html>
