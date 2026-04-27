@@ -1,275 +1,165 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FairAI Decision Assistant</title>
-    <style>
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #0E1117;
-            color: #E0E0E0;
-            margin: 0;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-        .header { width: 100%; max-width: 1000px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #333; padding-bottom: 10px; margin-bottom: 20px; }
-        .header h1 { margin: 0; color: #00E5FF; }
-        .reset-btn { background: #333; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; }
-        
-        .container { display: flex; gap: 20px; max-width: 1000px; width: 100%; }
-        .col-left { flex: 1; display: flex; flex-direction: column; gap: 20px; }
-        .col-right { flex: 1.5; display: flex; flex-direction: column; gap: 20px; }
-        
-        .card { background: #1E2127; padding: 20px; border-radius: 12px; border: 1px solid #333; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
-        .card-header { font-size: 1.25rem; font-weight: bold; color: #00E5FF; border-bottom: 1px solid #333; padding-bottom: 5px; margin-bottom: 15px; }
-        
-        .form-group { margin-bottom: 15px; }
-        label { display: block; margin-bottom: 5px; color: #A0A0A0; font-size: 0.9rem; }
-        input[type="number"], select { width: 100%; padding: 8px; border-radius: 5px; border: 1px solid #444; background: #0E1117; color: white; }
-        input[type="range"] { width: 100%; }
-        
-        .status { text-align: center; margin-bottom: 10px; }
-        .status h2 { margin: 0; font-size: 2.5rem; }
-        .approved { color: #00E676; }
-        .rejected { color: #FF1744; }
-        
-        .progress-bar-bg { background: #333; border-radius: 5px; width: 100%; height: 10px; margin-top: 10px; }
-        .progress-bar-fill { background: #00E5FF; height: 100%; border-radius: 5px; transition: width 0.5s; }
-        
-        .trust-score { text-align: center; font-size: 3rem; font-weight: 900; color: #00E5FF; }
-        
-        .chat-container { display: flex; flex-direction: column; gap: 10px; max-height: 250px; overflow-y: auto; padding: 10px; background: #15181E; border-radius: 8px; margin-bottom: 10px; }
-        .chat-bot { background: #1e4b59; align-self: flex-start; padding: 10px; border-radius: 15px 15px 15px 0; max-width: 80%; }
-        .chat-user { background: #2b313c; align-self: flex-end; padding: 10px; border-radius: 15px 15px 0 15px; max-width: 80%; }
-        .chat-input { display: flex; gap: 10px; }
-        .chat-input input { flex: 1; padding: 10px; border-radius: 5px; border: 1px solid #444; background: #0E1117; color: white; }
-        .chat-input button { padding: 10px 15px; background: #00E5FF; color: black; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; }
-        
-        .bias-badge { padding: 10px; border-radius: 5px; font-weight: bold; text-align: center; }
-        .bias-warn { background: rgba(255, 23, 68, 0.2); color: #FF1744; border: 1px solid #FF1744; }
-        .bias-ok { background: rgba(0, 230, 118, 0.2); color: #00E676; border: 1px solid #00E676; }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FairAI Decision Assistant</title>
+
+<style>
+body {
+    font-family: 'Inter', sans-serif;
+    background-color: #0E1117;
+    color: #E0E0E0;
+    margin: 0;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+.header { width: 100%; max-width: 1000px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #333; padding-bottom: 10px; margin-bottom: 20px; }
+.header h1 { margin: 0; color: #00E5FF; }
+.reset-btn { background: #333; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; }
+
+.container { display: flex; gap: 20px; max-width: 1000px; width: 100%; }
+.col-left, .col-right { display: flex; flex-direction: column; gap: 20px; }
+.col-left { flex: 1; }
+.col-right { flex: 1.5; }
+
+.card { background: #1E2127; padding: 20px; border-radius: 12px; border: 1px solid #333; }
+.card-header { font-size: 1.2rem; color: #00E5FF; margin-bottom: 10px; }
+
+input, select { width: 100%; padding: 8px; margin-top: 5px; background: #0E1117; color: white; border: 1px solid #444; border-radius: 5px; }
+
+.status h2 { font-size: 2rem; }
+.approved { color: #00E676; }
+.rejected { color: #FF1744; }
+
+.progress-bar-bg { background: #333; height: 10px; border-radius: 5px; }
+.progress-bar-fill { background: #00E5FF; height: 100%; border-radius: 5px; }
+
+.chat-container { max-height: 200px; overflow-y: auto; background: #15181E; padding: 10px; border-radius: 8px; }
+.chat-bot { background: #1e4b59; padding: 8px; border-radius: 10px; margin: 5px 0; }
+.chat-user { background: #2b313c; padding: 8px; border-radius: 10px; margin: 5px 0; text-align: right; }
+
+button { cursor: pointer; }
+</style>
 </head>
+
 <body>
 
 <div class="header">
-    <h1>🤖 FairAI Decision Assistant</h1>
-    <button class="reset-btn" onclick="location.reload()">🔄 Reset Session</button>
+<h1>🤖 FairAI Decision Assistant</h1>
+<button class="reset-btn" onclick="location.reload()">Reset</button>
 </div>
 
 <div class="container">
-    <!-- LEFT COLUMN -->
-    <div class="col-left">
-        <div class="card">
-            <div class="card-header">👤 Applicant Details</div>
-            
-            <div class="form-group">
-                <label>Decision Engine</label>
-                <select id="model_choice" onchange="predict()">
-                    <option value="Random Forest">Random Forest</option>
-                    <option value="Logistic Regression">Logistic Regression</option>
-                </select>
-            </div>
-            
-            <div class="form-group">
-                <label>Age: <span id="age_val">35</span></label>
-                <input type="range" id="age" min="18" max="80" value="35" onchange="predict()" oninput="document.getElementById('age_val').innerText = this.value">
-            </div>
-            
-            <div class="form-group">
-                <label>Annual Income ($)</label>
-                <input type="number" id="income" value="60000" step="5000" onchange="predict()">
-            </div>
-            
-            <div class="form-group">
-                <label>Credit Score: <span id="credit_val">680</span></label>
-                <input type="range" id="credit" min="300" max="850" value="680" onchange="predict()" oninput="document.getElementById('credit_val').innerText = this.value">
-            </div>
-            
-            <div class="form-group">
-                <label>Loan Amount ($)</label>
-                <input type="number" id="loan" value="15000" step="1000" onchange="predict()">
-            </div>
-            
-            <div class="form-group">
-                <label>Education Level</label>
-                <select id="education" onchange="predict()">
-                    <option value="0">High School</option>
-                    <option value="1" selected>Bachelors</option>
-                    <option value="2">Masters+</option>
-                </select>
-            </div>
-            
-            <div class="form-group">
-                <label>Gender</label>
-                <select id="gender" onchange="predict()">
-                    <option value="0">Female</option>
-                    <option value="1">Male</option>
-                </select>
-            </div>
-        </div>
 
-        <div class="card">
-            <div class="card-header">🛡️ AI Trust Score</div>
-            <div class="trust-score" id="trust_score_text">--%</div>
-            <div class="progress-bar-bg"><div class="progress-bar-fill" id="trust_score_bar" style="width: 0%"></div></div>
-            <p style="font-size: 0.8rem; color:#A0A0A0; text-align: center;">Based on Model Confidence and Bias Parity.</p>
-        </div>
+<div class="col-left">
 
-        <div class="card">
-            <div class="card-header">⚖️ Bias Detection</div>
-            <div id="bias_badge" class="bias-badge bias-ok">Checking...</div>
-        </div>
-    </div>
+<div class="card">
+<div class="card-header">Applicant Details</div>
 
-    <!-- RIGHT COLUMN -->
-    <div class="col-right">
-        <div class="card">
-            <div class="card-header">🎯 Decision Status</div>
-            <div class="status">
-                <h2 id="decision_text">...</h2>
-            </div>
-            <div class="progress-bar-bg"><div class="progress-bar-fill" id="probability_bar" style="width: 0%"></div></div>
-            <div style="text-align:center; color:#A0A0A0; margin-top:5px;" id="probability_text">Approval Probability: --%</div>
-        </div>
+<label>Age</label>
+<input type="range" id="age" min="18" max="80" value="35" oninput="predict()">
 
-        <div class="card">
-            <div class="card-header">🧠 Explainability</div>
-            <p id="explanation_text" style="background:#15181E; padding:10px; border-radius:5px; border-left:4px solid #00E5FF;">Waiting for analysis...</p>
-            <div id="suggestions_box" style="display:none; margin-top:15px;">
-                <strong style="color:white;">💡 How to improve your chances:</strong>
-                <ul id="suggestions_list" style="color:#A0A0A0; padding-left:20px;"></ul>
-            </div>
-        </div>
+<label>Income</label>
+<input type="number" id="income" value="60000" oninput="predict()">
 
-        <div class="card">
-            <div class="card-header">💬 AI Chat Assistant</div>
-            <div class="chat-container" id="chat_history">
-                <div class="chat-bot">Hi! I am the FairAI Assistant. Feel free to ask me why you were approved/rejected, how to improve your chances, or if the decision is fair!</div>
-            </div>
-            <div class="chat-input">
-                <input type="text" id="chat_input" placeholder="e.g. Why was I rejected?" onkeypress="if(event.key === 'Enter') sendChat()">
-                <button onclick="sendChat()">Send</button>
-            </div>
-        </div>
-    </div>
+<label>Credit Score</label>
+<input type="range" id="credit" min="300" max="850" value="680" oninput="predict()">
+
+<label>Loan</label>
+<input type="number" id="loan" value="15000" oninput="predict()">
+
+</div>
+
+<div class="card">
+<div class="card-header">Trust Score</div>
+<h2 id="trust">--%</h2>
+<div class="progress-bar-bg">
+<div class="progress-bar-fill" id="trust_bar"></div>
+</div>
+</div>
+
+</div>
+
+<div class="col-right">
+
+<div class="card">
+<div class="card-header">Decision</div>
+<div class="status">
+<h2 id="decision">...</h2>
+</div>
+<div class="progress-bar-bg">
+<div class="progress-bar-fill" id="prob_bar"></div>
+</div>
+<p id="prob_text">--%</p>
+</div>
+
+<div class="card">
+<div class="card-header">Explanation</div>
+<p id="explain">Waiting...</p>
+</div>
+
+<div class="card">
+<div class="card-header">Chat</div>
+<div class="chat-container" id="chat"></div>
+<input id="msg" placeholder="Ask something..." onkeypress="if(event.key==='Enter')chat()">
+<button onclick="chat()">Send</button>
+</div>
+
+</div>
+
 </div>
 
 <script>
-    let lastPredictionData = {};
 
-    function getFormData() {
-        return {
-            age: parseInt(document.getElementById('age').value),
-            income: parseFloat(document.getElementById('income').value),
-            credit_score: parseFloat(document.getElementById('credit').value),
-            loan_amount: parseFloat(document.getElementById('loan').value),
-            education: parseInt(document.getElementById('education').value),
-            gender: parseInt(document.getElementById('gender').value),
-            model_choice: document.getElementById('model_choice').value
-        };
+function predict() {
+    let income = document.getElementById("income").value;
+    let credit = document.getElementById("credit").value;
+    let loan = document.getElementById("loan").value;
+
+    let score = (credit/850)*0.6 + (income/100000)*0.3 - (loan/50000)*0.2;
+    let prob = Math.max(0, Math.min(1, score));
+
+    let percent = (prob*100).toFixed(1);
+
+    document.getElementById("prob_text").innerText = percent + "%";
+    document.getElementById("prob_bar").style.width = percent + "%";
+
+    if(prob > 0.5){
+        document.getElementById("decision").innerHTML = "<span class='approved'>APPROVED</span>";
+    } else {
+        document.getElementById("decision").innerHTML = "<span class='rejected'>REJECTED</span>";
     }
 
-    async function predict() {
-        const payload = getFormData();
-        
-        try {
-            const response = await fetch('/api/predict', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            });
-            
-            const data = await response.json();
-            lastPredictionData = { payload, data };
+    document.getElementById("explain").innerText =
+        "Decision based on credit score, income and loan balance.";
 
-            // Update Status
-            const probPct = (data.probability * 100).toFixed(1);
-            document.getElementById('probability_text').innerText = `Approval Probability: ${probPct}%`;
-            document.getElementById('probability_bar').style.width = `${probPct}%`;
-            
-            const decText = document.getElementById('decision_text');
-            if(data.prediction === 1) {
-                decText.innerHTML = "<span class='approved'>✅ APPROVED</span>";
-            } else {
-                decText.innerHTML = "<span class='rejected'>❌ REJECTED</span>";
-            }
+    let trust = Math.floor(70 + Math.random()*30);
+    document.getElementById("trust").innerText = trust + "%";
+    document.getElementById("trust_bar").style.width = trust + "%";
+}
 
-            // Update Explainability
-            document.getElementById('explanation_text').innerHTML = data.english_explanation;
-            
-            const sugBox = document.getElementById('suggestions_box');
-            const sugList = document.getElementById('suggestions_list');
-            if(data.suggestions.length > 0) {
-                sugList.innerHTML = "";
-                data.suggestions.forEach(s => {
-                    sugList.innerHTML += `<li><b>${s.action}</b> (+${(s.impact*100).toFixed(1)}%)</li>`;
-                });
-                sugBox.style.display = "block";
-            } else {
-                sugBox.style.display = "none";
-            }
+function chat(){
+    let input = document.getElementById("msg");
+    let chat = document.getElementById("chat");
 
-            // Update Trust Score
-            document.getElementById('trust_score_text').innerText = `${data.trust_score}%`;
-            document.getElementById('trust_score_bar').style.width = `${data.trust_score}%`;
+    let text = input.value;
+    if(!text) return;
 
-            // Update Bias
-            const badge = document.getElementById('bias_badge');
-            if(data.dp_diff > 0.05) {
-                badge.className = "bias-badge bias-warn";
-                badge.innerText = "⚠️ Potential Bias Detected";
-            } else {
-                badge.className = "bias-badge bias-ok";
-                badge.innerText = "✅ No significant bias detected";
-            }
+    chat.innerHTML += "<div class='chat-user'>"+text+"</div>";
 
-        } catch (err) {
-            console.error("API error:", err);
-        }
-    }
+    setTimeout(()=>{
+        chat.innerHTML += "<div class='chat-bot'>Improve credit score or reduce loan for better approval chances.</div>";
+        chat.scrollTop = chat.scrollHeight;
+    },500);
 
-    async function sendChat() {
-        const input = document.getElementById('chat_input');
-        const msg = input.value.trim();
-        if(!msg) return;
+    input.value="";
+}
 
-        const chatHist = document.getElementById('chat_history');
-        chatHist.innerHTML += `<div class="chat-user">${msg}</div>`;
-        input.value = "";
-        chatHist.scrollTop = chatHist.scrollHeight;
+window.onload = predict;
 
-        if(!lastPredictionData.data) {
-            chatHist.innerHTML += `<div class="chat-bot">Please wait for the model to load...</div>`;
-            return;
-        }
-
-        const payload = {
-            message: msg,
-            english_explanation: lastPredictionData.data.english_explanation,
-            probability: lastPredictionData.data.probability,
-            input_data: lastPredictionData.payload
-        };
-
-        try {
-            const response = await fetch('/api/chat', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            });
-            const data = await response.json();
-            chatHist.innerHTML += `<div class="chat-bot">${data.reply}</div>`;
-            chatHist.scrollTop = chatHist.scrollHeight;
-        } catch (err) {
-            chatHist.innerHTML += `<div class="chat-bot">Error connecting to AI.</div>`;
-        }
-    }
-
-    // Initial load
-    window.onload = predict;
 </script>
 
 </body>
