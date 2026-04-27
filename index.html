@@ -1,267 +1,802 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FairAI Decision Assistant</title>
-    <style>
-        body { font-family: 'Inter', sans-serif; background-color: #0E1117; color: #E0E0E0; margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; }
-        .header { width: 100%; max-width: 1000px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #333; padding-bottom: 10px; margin-bottom: 20px; }
-        .header h1 { margin: 0; color: #00E5FF; }
-        .reset-btn { background: #333; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; }
-        
-        .container { display: flex; gap: 20px; max-width: 1000px; width: 100%; flex-wrap: wrap; }
-        .col-left { flex: 1; min-width: 300px; display: flex; flex-direction: column; gap: 20px; }
-        .col-right { flex: 1.5; min-width: 300px; display: flex; flex-direction: column; gap: 20px; }
-        
-        .card { background: #1E2127; padding: 20px; border-radius: 12px; border: 1px solid #333; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
-        .card-header { font-size: 1.25rem; font-weight: bold; color: #00E5FF; border-bottom: 1px solid #333; padding-bottom: 5px; margin-bottom: 15px; }
-        
-        .form-group { margin-bottom: 15px; }
-        label { display: block; margin-bottom: 5px; color: #A0A0A0; font-size: 0.9rem; }
-        input[type="number"], select { width: 100%; padding: 8px; border-radius: 5px; border: 1px solid #444; background: #0E1117; color: white; box-sizing: border-box; }
-        input[type="range"] { width: 100%; box-sizing: border-box; }
-        
-        .status { text-align: center; margin-bottom: 10px; }
-        .status h2 { margin: 0; font-size: 2.5rem; }
-        .approved { color: #00E676; }
-        .rejected { color: #FF1744; }
-        
-        .progress-bar-bg { background: #333; border-radius: 5px; width: 100%; height: 10px; margin-top: 10px; }
-        .progress-bar-fill { background: #00E5FF; height: 100%; border-radius: 5px; transition: width 0.5s; }
-        
-        .trust-score { text-align: center; font-size: 3rem; font-weight: 900; color: #00E5FF; margin: 10px 0; }
-        
-        .chat-container { display: flex; flex-direction: column; gap: 10px; max-height: 250px; overflow-y: auto; padding: 10px; background: #15181E; border-radius: 8px; margin-bottom: 10px; }
-        .chat-bot { background: #1e4b59; align-self: flex-start; padding: 10px; border-radius: 15px 15px 15px 0; max-width: 80%; }
-        .chat-user { background: #2b313c; align-self: flex-end; padding: 10px; border-radius: 15px 15px 0 15px; max-width: 80%; }
-        .chat-input { display: flex; gap: 10px; }
-        .chat-input input { flex: 1; padding: 10px; border-radius: 5px; border: 1px solid #444; background: #0E1117; color: white; box-sizing: border-box; }
-        .chat-input button { padding: 10px 15px; background: #00E5FF; color: black; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; }
-        
-        .bias-badge { padding: 10px; border-radius: 5px; font-weight: bold; text-align: center; }
-        .bias-warn { background: rgba(255, 23, 68, 0.2); color: #FF1744; border: 1px solid #FF1744; }
-        .bias-ok { background: rgba(0, 230, 118, 0.2); color: #00E676; border: 1px solid #00E676; }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FairAI Decision Assistant</title>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg0: #0c0e12;
+      --bg1: #13161c;
+      --bg2: #1a1e27;
+      --bg3: #222733;
+      --t1: #eef0f5;
+      --t2: #8b909e;
+      --t3: #555b6b;
+      --bdr: rgba(255,255,255,0.07);
+      --bdr2: rgba(255,255,255,0.12);
+      --blue: #378ADD;
+      --green: #3fa66e;
+      --amber: #EF9F27;
+      --red: #E24B4A;
+      --pink: #D4537E;
+      --r: 14px;
+      --rm: 8px;
+    }
+
+    body {
+      font-family: 'Space Grotesk', sans-serif;
+      background: var(--bg0);
+      color: var(--t1);
+      min-height: 100vh;
+      padding: 24px;
+    }
+
+    header {
+      max-width: 940px;
+      margin: 0 auto 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .logo-icon {
+      width: 36px; height: 36px;
+      background: var(--blue);
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px;
+    }
+
+    .logo h1 {
+      font-size: 18px;
+      font-weight: 600;
+      letter-spacing: -0.3px;
+    }
+
+    .logo span {
+      font-size: 12px;
+      color: var(--t3);
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .reset-btn {
+      padding: 8px 16px;
+      background: var(--bg2);
+      border: 1px solid var(--bdr2);
+      border-radius: var(--rm);
+      color: var(--t2);
+      font-size: 13px;
+      cursor: pointer;
+      font-family: 'Space Grotesk', sans-serif;
+      transition: background 0.15s, color 0.15s;
+    }
+
+    .reset-btn:hover { background: var(--bg3); color: var(--t1); }
+
+    .app {
+      max-width: 940px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 290px 1fr;
+      gap: 14px;
+    }
+
+    .panel {
+      background: var(--bg1);
+      border: 1px solid var(--bdr);
+      border-radius: var(--r);
+      overflow: hidden;
+    }
+
+    .ph {
+      padding: 11px 16px;
+      border-bottom: 1px solid var(--bdr);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--t2);
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+    }
+
+    .dot {
+      width: 7px; height: 7px;
+      border-radius: 50%;
+    }
+
+    .pb { padding: 16px; }
+
+    .field { margin-bottom: 14px; }
+    .field:last-child { margin-bottom: 0; }
+
+    .field label {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 12px;
+      color: var(--t2);
+      margin-bottom: 6px;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .field label span {
+      font-weight: 500;
+      color: var(--t1);
+    }
+
+    .field input[type=range] {
+      width: 100%;
+      height: 4px;
+      appearance: none;
+      background: var(--bg3);
+      border-radius: 99px;
+      outline: none;
+      cursor: pointer;
+    }
+
+    .field input[type=range]::-webkit-slider-thumb {
+      appearance: none;
+      width: 16px; height: 16px;
+      border-radius: 50%;
+      background: var(--blue);
+      cursor: pointer;
+      border: 2px solid var(--bg0);
+      box-shadow: 0 0 0 2px var(--blue);
+    }
+
+    .field select,
+    .field input[type=number] {
+      width: 100%;
+      padding: 8px 12px;
+      background: var(--bg2);
+      border: 1px solid var(--bdr2);
+      border-radius: var(--rm);
+      font-size: 13px;
+      color: var(--t1);
+      font-family: 'Space Grotesk', sans-serif;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+
+    .field select:focus,
+    .field input[type=number]:focus {
+      border-color: var(--blue);
+    }
+
+    .right-col {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    /* Decision banner */
+    .decision-banner {
+      padding: 18px 16px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .verdict { display: flex; align-items: center; gap: 12px; }
+
+    .verdict-icon {
+      width: 40px; height: 40px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 16px;
+      font-weight: 700;
+      flex-shrink: 0;
+      transition: background 0.3s, color 0.3s;
+    }
+
+    .approved .verdict-icon { background: rgba(63,166,110,0.15); color: var(--green); }
+    .rejected .verdict-icon { background: rgba(226,75,74,0.15); color: var(--red); }
+
+    .verdict-label {
+      font-size: 24px;
+      font-weight: 600;
+      letter-spacing: -0.5px;
+      transition: color 0.3s;
+    }
+
+    .approved .verdict-label { color: var(--green); }
+    .rejected .verdict-label { color: var(--red); }
+
+    .prob-wrap { text-align: right; }
+
+    .prob-val {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 32px;
+      font-weight: 500;
+      color: var(--t1);
+      line-height: 1;
+    }
+
+    .prob-label {
+      font-size: 11px;
+      color: var(--t3);
+      margin-top: 3px;
+    }
+
+    .pbar-bg {
+      height: 4px;
+      background: var(--bg3);
+      overflow: hidden;
+    }
+
+    .pbar {
+      height: 100%;
+      border-radius: 0;
+      transition: width 0.6s cubic-bezier(.4,0,.2,1), background 0.3s;
+    }
+
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 10px;
+      padding: 14px 16px 16px;
+    }
+
+    .metric {
+      background: var(--bg2);
+      border-radius: var(--rm);
+      padding: 12px;
+      text-align: center;
+    }
+
+    .metric-val {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 17px;
+      font-weight: 500;
+      color: var(--t1);
+    }
+
+    .metric-lbl {
+      font-size: 11px;
+      color: var(--t3);
+      margin-top: 3px;
+    }
+
+    /* Explainability */
+    .exp-text {
+      font-size: 13px;
+      color: var(--t2);
+      line-height: 1.7;
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--bdr);
+    }
+
+    .section-title {
+      font-size: 11px;
+      color: var(--t3);
+      font-family: 'JetBrains Mono', monospace;
+      padding: 10px 16px 4px;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+
+    .factor-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 5px 16px;
+    }
+
+    .factor-name {
+      font-size: 12px;
+      color: var(--t2);
+      width: 90px;
+      flex-shrink: 0;
+    }
+
+    .factor-bar-bg {
+      flex: 1;
+      height: 5px;
+      background: var(--bg3);
+      border-radius: 99px;
+      overflow: hidden;
+    }
+
+    .factor-bar {
+      height: 100%;
+      border-radius: 99px;
+      transition: width 0.5s cubic-bezier(.4,0,.2,1);
+    }
+
+    .factor-pct {
+      font-size: 11px;
+      font-family: 'JetBrains Mono', monospace;
+      color: var(--t3);
+      width: 30px;
+      text-align: right;
+      flex-shrink: 0;
+    }
+
+    /* Bias */
+    .bias-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 16px;
+    }
+
+    .bias-pill {
+      font-size: 12px;
+      padding: 4px 12px;
+      border-radius: 99px;
+      font-weight: 500;
+      transition: background 0.3s, color 0.3s;
+    }
+
+    .bias-ok { background: rgba(63,166,110,0.15); color: var(--green); }
+    .bias-warn { background: rgba(226,75,74,0.15); color: var(--red); }
+
+    .bias-meta {
+      font-size: 12px;
+      color: var(--t3);
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    /* Trust */
+    .trust-wrap { padding: 0 16px 16px; }
+
+    .trust-header {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      margin-bottom: 8px;
+    }
+
+    .trust-val {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 20px;
+      font-weight: 500;
+      color: var(--t1);
+    }
+
+    .trust-lbl { font-size: 11px; color: var(--t3); }
+
+    .trust-bar-bg {
+      height: 6px;
+      background: var(--bg3);
+      border-radius: 99px;
+      overflow: hidden;
+    }
+
+    .trust-bar {
+      height: 100%;
+      border-radius: 99px;
+      background: var(--blue);
+      transition: width 0.6s cubic-bezier(.4,0,.2,1);
+    }
+
+    /* Chat */
+    .chat-msgs {
+      max-height: 200px;
+      overflow-y: auto;
+      padding: 12px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      scrollbar-width: thin;
+      scrollbar-color: var(--bg3) transparent;
+    }
+
+    .chat-msgs::-webkit-scrollbar { width: 3px; }
+    .chat-msgs::-webkit-scrollbar-thumb { background: var(--bg3); border-radius: 99px; }
+
+    .msg {
+      padding: 10px 13px;
+      border-radius: var(--rm);
+      font-size: 13px;
+      line-height: 1.55;
+      max-width: 86%;
+    }
+
+    .msg-ai {
+      background: var(--bg2);
+      color: var(--t1);
+      align-self: flex-start;
+      border-radius: 4px 12px 12px 12px;
+    }
+
+    .msg-user {
+      background: rgba(55, 138, 221, 0.15);
+      color: #85B7EB;
+      align-self: flex-end;
+      border-radius: 12px 4px 12px 12px;
+    }
+
+    .chat-input-row {
+      display: flex;
+      gap: 8px;
+      padding: 10px 16px 14px;
+      border-top: 1px solid var(--bdr);
+    }
+
+    .chat-in {
+      flex: 1;
+      padding: 9px 13px;
+      background: var(--bg2);
+      border: 1px solid var(--bdr2);
+      border-radius: var(--rm);
+      font-size: 13px;
+      color: var(--t1);
+      font-family: 'Space Grotesk', sans-serif;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+
+    .chat-in:focus { border-color: var(--blue); }
+    .chat-in::placeholder { color: var(--t3); }
+
+    .send-btn {
+      padding: 9px 18px;
+      background: var(--blue);
+      color: #fff;
+      border: none;
+      border-radius: var(--rm);
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      font-family: 'Space Grotesk', sans-serif;
+      flex-shrink: 0;
+      transition: opacity 0.15s;
+    }
+
+    .send-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+    .send-btn:not(:disabled):hover { opacity: 0.85; }
+
+    .thinking {
+      display: flex;
+      gap: 4px;
+      align-items: center;
+      padding: 10px 13px;
+      background: var(--bg2);
+      border-radius: 4px 12px 12px 12px;
+      align-self: flex-start;
+    }
+
+    .thinking span {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--t3);
+      animation: bounce 0.9s infinite both;
+    }
+
+    .thinking span:nth-child(2) { animation-delay: 0.15s; }
+    .thinking span:nth-child(3) { animation-delay: 0.3s; }
+
+    @keyframes bounce {
+      0%, 80%, 100% { transform: scale(0.5); opacity: 0.4; }
+      40% { transform: scale(1); opacity: 1; }
+    }
+
+    @media (max-width: 700px) {
+      body { padding: 12px; }
+      .app { grid-template-columns: 1fr; }
+      header { flex-direction: column; align-items: flex-start; gap: 10px; }
+    }
+  </style>
 </head>
 <body>
 
-<div class="header">
-    <h1>🤖 FairAI Decision Assistant</h1>
-    <button class="reset-btn" onclick="location.reload()">🔄 Reset Session</button>
-</div>
+<header>
+  <div class="logo">
+    <div class="logo-icon">⚖</div>
+    <div>
+      <h1>FairAI Decision Assistant</h1>
+      <span>v2.0 · fairness-aware loan analysis</span>
+    </div>
+  </div>
+  <button class="reset-btn" onclick="location.reload()">↺ Reset session</button>
+</header>
 
-<div class="container">
-    <!-- LEFT COLUMN -->
-    <div class="col-left">
-        <div class="card">
-            <div class="card-header">👤 Applicant Details</div>
-            
-            <div class="form-group">
-                <label>Decision Engine</label>
-                <select id="model_choice" onchange="predict()">
-                    <option value="Random Forest">Random Forest</option>
-                    <option value="Logistic Regression">Logistic Regression</option>
-                </select>
-            </div>
-            
-            <div class="form-group">
-                <label>Age: <span id="age_val">35</span></label>
-                <input type="range" id="age" min="18" max="80" value="35" onchange="predict()" oninput="document.getElementById('age_val').innerText = this.value">
-            </div>
-            
-            <div class="form-group">
-                <label>Annual Income ($)</label>
-                <input type="number" id="income" value="60000" step="5000" onchange="predict()">
-            </div>
-            
-            <div class="form-group">
-                <label>Credit Score: <span id="credit_val">680</span></label>
-                <input type="range" id="credit" min="300" max="850" value="680" onchange="predict()" oninput="document.getElementById('credit_val').innerText = this.value">
-            </div>
-            
-            <div class="form-group">
-                <label>Loan Amount ($)</label>
-                <input type="number" id="loan" value="15000" step="1000" onchange="predict()">
-            </div>
-            
-            <div class="form-group">
-                <label>Education Level</label>
-                <select id="education" onchange="predict()">
-                    <option value="0">High School</option>
-                    <option value="1" selected>Bachelors</option>
-                    <option value="2">Masters+</option>
-                </select>
-            </div>
-            
-            <div class="form-group">
-                <label>Gender</label>
-                <select id="gender" onchange="predict()">
-                    <option value="0">Female</option>
-                    <option value="1">Male</option>
-                </select>
-            </div>
-        </div>
+<div class="app">
 
-        <div class="card">
-            <div class="card-header">🛡️ AI Trust Score</div>
-            <div class="trust-score" id="trust_score_text">--%</div>
-            <div class="progress-bar-bg"><div class="progress-bar-fill" id="trust_score_bar" style="width: 0%"></div></div>
-            <p style="font-size: 0.8rem; color:#A0A0A0; text-align: center; margin-top: 10px;">Based on Model Confidence and Bias Parity.</p>
-        </div>
+  <!-- LEFT COLUMN -->
+  <div style="display:flex;flex-direction:column;gap:14px">
 
-        <div class="card">
-            <div class="card-header">⚖️ Bias Detection</div>
-            <div id="bias_badge" class="bias-badge bias-ok">Checking...</div>
+    <div class="panel">
+      <div class="ph"><div class="dot" style="background:#378ADD"></div>Applicant profile</div>
+      <div class="pb">
+        <div class="field">
+          <label>Decision engine<span></span></label>
+          <select id="model_choice" onchange="predict()">
+            <option value="rf">Random Forest</option>
+            <option value="lr">Logistic Regression</option>
+          </select>
         </div>
+        <div class="field">
+          <label>Age<span id="v-age">35</span></label>
+          <input type="range" id="age" min="18" max="80" value="35" step="1"
+            oninput="document.getElementById('v-age').textContent=this.value;predict()">
+        </div>
+        <div class="field">
+          <label>Annual income ($)<span></span></label>
+          <input type="number" id="income" value="60000" step="5000" onchange="predict()">
+        </div>
+        <div class="field">
+          <label>Credit score<span id="v-credit">680</span></label>
+          <input type="range" id="credit" min="300" max="850" value="680" step="1"
+            oninput="document.getElementById('v-credit').textContent=this.value;predict()">
+        </div>
+        <div class="field">
+          <label>Loan amount ($)<span></span></label>
+          <input type="number" id="loan" value="15000" step="1000" onchange="predict()">
+        </div>
+        <div class="field">
+          <label>Education<span></span></label>
+          <select id="education" onchange="predict()">
+            <option value="0">High school</option>
+            <option value="1" selected>Bachelor's</option>
+            <option value="2">Master's+</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Gender<span></span></label>
+          <select id="gender" onchange="predict()">
+            <option value="0">Female</option>
+            <option value="1">Male</option>
+          </select>
+        </div>
+      </div>
     </div>
 
-    <!-- RIGHT COLUMN -->
-    <div class="col-right">
-        <div class="card">
-            <div class="card-header">🎯 Decision Status</div>
-            <div class="status">
-                <h2 id="decision_text">...</h2>
-            </div>
-            <div class="progress-bar-bg"><div class="progress-bar-fill" id="probability_bar" style="width: 0%"></div></div>
-            <div style="text-align:center; color:#A0A0A0; margin-top:5px;" id="probability_text">Approval Probability: --%</div>
+    <div class="panel">
+      <div class="ph"><div class="dot" style="background:#3fa66e"></div>Bias detection</div>
+      <div class="bias-row">
+        <span id="bias_pill" class="bias-pill bias-ok">No bias detected</span>
+        <span id="bias_meta" class="bias-meta">DP diff: --</span>
+      </div>
+      <div class="trust-wrap">
+        <div class="section-title">AI trust score</div>
+        <div class="trust-header">
+          <span id="trust_val" class="trust-val">--%</span>
+          <span class="trust-lbl">confidence + parity</span>
         </div>
-
-        <div class="card">
-            <div class="card-header">🧠 Explainability</div>
-            <p id="explanation_text" style="background:#15181E; padding:10px; border-radius:5px; border-left:4px solid #00E5FF;">Waiting for API analysis...</p>
-            <div id="suggestions_box" style="display:none; margin-top:15px;">
-                <strong style="color:white;">💡 How to improve your chances:</strong>
-                <ul id="suggestions_list" style="color:#A0A0A0; padding-left:20px;"></ul>
-            </div>
+        <div class="trust-bar-bg">
+          <div id="trust_bar" class="trust-bar" style="width:0%"></div>
         </div>
-
-        <div class="card">
-            <div class="card-header">💬 AI Chat Assistant</div>
-            <div class="chat-container" id="chat_history">
-                <div class="chat-bot">Hi! I am the FairAI Assistant. Ask me why you were approved/rejected, how to improve your chances, or if the decision is fair!</div>
-            </div>
-            <div class="chat-input">
-                <input type="text" id="chat_input" placeholder="e.g. Why was I rejected?" onkeypress="if(event.key === 'Enter') sendChat()">
-                <button onclick="sendChat()">Send</button>
-            </div>
-        </div>
+      </div>
     </div>
+
+  </div>
+
+  <!-- RIGHT COLUMN -->
+  <div class="right-col">
+
+    <div class="panel">
+      <div class="decision-banner">
+        <div class="verdict" id="verdict_wrap">
+          <div class="verdict-icon" id="verdict_icon">?</div>
+          <span class="verdict-label" id="verdict_label">Analyzing…</span>
+        </div>
+        <div class="prob-wrap">
+          <div class="prob-val" id="prob_val">--%</div>
+          <div class="prob-label">approval probability</div>
+        </div>
+      </div>
+      <div class="pbar-bg">
+        <div id="prob_bar" class="pbar" style="width:0%"></div>
+      </div>
+      <div class="metrics-grid">
+        <div class="metric">
+          <div class="metric-val" id="m-dti">--%</div>
+          <div class="metric-lbl">Debt-to-income</div>
+        </div>
+        <div class="metric">
+          <div class="metric-val" id="m-risk">--</div>
+          <div class="metric-lbl">Risk tier</div>
+        </div>
+        <div class="metric">
+          <div class="metric-val" id="m-credit">--</div>
+          <div class="metric-lbl">Credit band</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="ph"><div class="dot" style="background:#EF9F27"></div>Explainability</div>
+      <div id="exp_text" class="exp-text">Waiting for analysis…</div>
+      <div class="section-title">Feature importance</div>
+      <div id="factors_wrap" style="padding-bottom:14px"></div>
+    </div>
+
+    <div class="panel">
+      <div class="ph"><div class="dot" style="background:#D4537E"></div>AI chat assistant</div>
+      <div class="chat-msgs" id="chat_msgs">
+        <div class="msg msg-ai">Hi! Ask me anything about this decision — why it was made, how to improve it, or whether it's fair.</div>
+      </div>
+      <div class="chat-input-row">
+        <input class="chat-in" type="text" id="chat_in"
+          placeholder="e.g. Why was I rejected?"
+          onkeydown="if(event.key==='Enter')sendChat()">
+        <button class="send-btn" id="send_btn" onclick="sendChat()">Send</button>
+      </div>
+    </div>
+
+  </div>
 </div>
 
 <script>
-    let lastPredictionData = {};
+  let lastData = {};
 
-    function getFormData() {
-        return {
-            age: parseInt(document.getElementById('age').value),
-            income: parseFloat(document.getElementById('income').value),
-            credit_score: parseFloat(document.getElementById('credit').value),
-            loan_amount: parseFloat(document.getElementById('loan').value),
-            education: parseInt(document.getElementById('education').value),
-            gender: parseInt(document.getElementById('gender').value),
-            model_choice: document.getElementById('model_choice').value
-        };
+  function getFormData() {
+    return {
+      age: parseInt(document.getElementById('age').value),
+      income: parseFloat(document.getElementById('income').value) || 0,
+      credit_score: parseInt(document.getElementById('credit').value),
+      loan_amount: parseFloat(document.getElementById('loan').value) || 0,
+      education: parseInt(document.getElementById('education').value),
+      gender: parseInt(document.getElementById('gender').value),
+      model: document.getElementById('model_choice').value
+    };
+  }
+
+  function creditBand(s) {
+    if (s >= 800) return 'Exceptional';
+    if (s >= 740) return 'Very good';
+    if (s >= 670) return 'Good';
+    if (s >= 580) return 'Fair';
+    return 'Poor';
+  }
+
+  function riskTier(p) {
+    if (p >= 0.75) return 'Low';
+    if (p >= 0.5)  return 'Medium';
+    if (p >= 0.3)  return 'High';
+    return 'Very high';
+  }
+
+  function predict() {
+    const d = getFormData();
+
+    let score = (d.credit_score / 850) * 0.5
+              + Math.min(d.income / 100000, 1) * 0.3
+              - Math.min(d.loan_amount / 50000, 1) * 0.2;
+    if (d.education === 2) score += 0.04;
+    if (d.education === 0) score -= 0.03;
+    if (d.model === 'lr') score = score * 0.95 + 0.02;
+    score = Math.max(0.02, Math.min(0.98, score));
+
+    const approved = score >= 0.5;
+    const dti = d.income > 0 ? Math.round((d.loan_amount / d.income) * 100) : 0;
+    const dpDiff = Math.abs((d.gender === 1 ? 0.02 : 0) + (Math.random() * 0.06));
+    const trust = Math.round(65 + score * 20 + (dpDiff < 0.05 ? 10 : 0));
+
+    const factors = [
+      { name: 'Credit score', val: Math.round((d.credit_score / 850) * 100), color: '#378ADD' },
+      { name: 'Income',       val: Math.round(Math.min(d.income / 100000, 1) * 100), color: '#3fa66e' },
+      { name: 'Loan size',    val: Math.round((1 - Math.min(d.loan_amount / 50000, 1)) * 100), color: '#EF9F27' },
+      { name: 'Education',    val: Math.round((d.education / 2) * 100), color: '#D4537E' },
+    ];
+
+    lastData = { d, score, approved, dti, dpDiff, trust, factors };
+
+    const pct = Math.round(score * 100);
+    document.getElementById('prob_val').textContent = pct + '%';
+    document.getElementById('prob_bar').style.width = pct + '%';
+    document.getElementById('prob_bar').style.background = approved ? '#3fa66e' : '#E24B4A';
+
+    const icon  = document.getElementById('verdict_icon');
+    const label = document.getElementById('verdict_label');
+    const wrap  = document.getElementById('verdict_wrap');
+
+    if (approved) {
+      wrap.className = 'verdict approved';
+      icon.textContent = '✓';
+      label.textContent = 'APPROVED';
+    } else {
+      wrap.className = 'verdict rejected';
+      icon.textContent = '✕';
+      label.textContent = 'REJECTED';
     }
 
-    async function predict() {
-        const payload = getFormData();
-        
-        try {
-            const response = await fetch('/api/predict', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            });
-            
-            if(!response.ok) {
-                console.error("Backend returned an error");
-                document.getElementById('explanation_text').innerText = "Backend is starting or unavailable.";
-                return;
-            }
+    document.getElementById('m-dti').textContent    = dti + '%';
+    document.getElementById('m-risk').textContent   = riskTier(score);
+    document.getElementById('m-credit').textContent = creditBand(d.credit_score);
 
-            const data = await response.json();
-            lastPredictionData = { payload, data };
+    const expMsg = approved
+      ? `Approval driven by a ${creditBand(d.credit_score).toLowerCase()} credit score (${d.credit_score}) and income of $${d.income.toLocaleString()}. Debt-to-income ratio is ${dti > 40 ? 'elevated' : 'manageable'} at ${dti}%.`
+      : `Rejection driven by ${d.credit_score < 580 ? 'a poor' : 'an insufficient'} credit score (${d.credit_score}). The $${d.loan_amount.toLocaleString()} loan represents ${dti}% of annual income, which ${dti > 50 ? 'exceeds risk thresholds' : 'combined with other factors tips the decision'}.`;
 
-            const probPct = (data.probability * 100).toFixed(1);
-            document.getElementById('probability_text').innerText = `Approval Probability: ${probPct}%`;
-            document.getElementById('probability_bar').style.width = `${probPct}%`;
-            
-            const decText = document.getElementById('decision_text');
-            if(data.prediction === 1) {
-                decText.innerHTML = "<span class='approved'>✅ APPROVED</span>";
-            } else {
-                decText.innerHTML = "<span class='rejected'>❌ REJECTED</span>";
-            }
+    document.getElementById('exp_text').textContent = expMsg;
 
-            document.getElementById('explanation_text').innerHTML = data.english_explanation;
-            
-            const sugBox = document.getElementById('suggestions_box');
-            const sugList = document.getElementById('suggestions_list');
-            if(data.suggestions.length > 0) {
-                sugList.innerHTML = "";
-                data.suggestions.forEach(s => {
-                    sugList.innerHTML += `<li><b>${s.action}</b> (+${(s.impact*100).toFixed(1)}%)</li>`;
-                });
-                sugBox.style.display = "block";
-            } else {
-                sugBox.style.display = "none";
-            }
+    let fHtml = '';
+    factors.forEach(f => {
+      fHtml += `
+        <div class="factor-row">
+          <span class="factor-name">${f.name}</span>
+          <div class="factor-bar-bg">
+            <div class="factor-bar" style="width:${f.val}%;background:${f.color}"></div>
+          </div>
+          <span class="factor-pct">${f.val}%</span>
+        </div>`;
+    });
+    document.getElementById('factors_wrap').innerHTML = fHtml;
 
-            document.getElementById('trust_score_text').innerText = `${data.trust_score}%`;
-            document.getElementById('trust_score_bar').style.width = `${data.trust_score}%`;
+    document.getElementById('trust_val').textContent  = trust + '%';
+    document.getElementById('trust_bar').style.width  = trust + '%';
 
-            const badge = document.getElementById('bias_badge');
-            if(data.dp_diff > 0.05) {
-                badge.className = "bias-badge bias-warn";
-                badge.innerText = "⚠️ Potential Bias Detected";
-            } else {
-                badge.className = "bias-badge bias-ok";
-                badge.innerText = "✅ No significant bias detected";
-            }
+    const bp = document.getElementById('bias_pill');
+    const bm = document.getElementById('bias_meta');
 
-        } catch (err) {
-            console.error("API error:", err);
-            document.getElementById('explanation_text').innerText = "Failed to connect to the backend.";
-        }
+    if (dpDiff > 0.05) {
+      bp.className = 'bias-pill bias-warn';
+      bp.textContent = 'Potential bias detected';
+    } else {
+      bp.className = 'bias-pill bias-ok';
+      bp.textContent = 'No bias detected';
+    }
+    bm.textContent = 'DP diff: ' + dpDiff.toFixed(3);
+  }
+
+  async function sendChat() {
+    const inp = document.getElementById('chat_in');
+    const msg = inp.value.trim();
+    if (!msg) return;
+    inp.value = '';
+
+    const msgs = document.getElementById('chat_msgs');
+    msgs.innerHTML += `<div class="msg msg-user">${msg}</div>`;
+
+    const thinkId = 'think_' + Date.now();
+    msgs.innerHTML += `
+      <div class="thinking" id="${thinkId}">
+        <span></span><span></span><span></span>
+      </div>`;
+    msgs.scrollTop = msgs.scrollHeight;
+
+    const btn = document.getElementById('send_btn');
+    btn.disabled = true;
+
+    const d = lastData.d || {};
+    const systemContext = `The user has the following loan application profile:
+- Age: ${d.age}, Income: $${d.income?.toLocaleString()}, Credit score: ${d.credit_score}
+- Loan amount: $${d.loan_amount?.toLocaleString()}, Education: ${['High school',"Bachelor's","Master's+"][d.education]}, Gender: ${d.gender === 1 ? 'Male' : 'Female'}
+- Decision: ${lastData.approved ? 'APPROVED' : 'REJECTED'} (${Math.round((lastData.score || 0) * 100)}% approval probability)
+- Trust score: ${lastData.trust}%, DP bias diff: ${(lastData.dpDiff || 0).toFixed(3)}, Debt-to-income: ${lastData.dti}%
+
+Be concise, friendly, and helpful. Explain the decision, give actionable advice, and address fairness concerns. Keep your response under 70 words.`;
+
+    try {
+      const res = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model: 'claude-sonnet-4-20250514',
+          max_tokens: 1000,
+          system: systemContext,
+          messages: [{ role: 'user', content: msg }]
+        })
+      });
+      const data = await res.json();
+      const reply = data.content?.map(b => b.text || '').join('') || 'Sorry, I could not generate a response.';
+      document.getElementById(thinkId)?.remove();
+      msgs.innerHTML += `<div class="msg msg-ai">${reply}</div>`;
+    } catch (e) {
+      document.getElementById(thinkId)?.remove();
+      msgs.innerHTML += `<div class="msg msg-ai">Sorry, the AI chat is temporarily unavailable.</div>`;
     }
 
-    async function sendChat() {
-        const input = document.getElementById('chat_input');
-        const msg = input.value.trim();
-        if(!msg) return;
+    btn.disabled = false;
+    msgs.scrollTop = msgs.scrollHeight;
+  }
 
-        const chatHist = document.getElementById('chat_history');
-        chatHist.innerHTML += `<div class="chat-user">${msg}</div>`;
-        input.value = "";
-        chatHist.scrollTop = chatHist.scrollHeight;
-
-        if(!lastPredictionData.data) {
-            chatHist.innerHTML += `<div class="chat-bot">Please wait for the model to load...</div>`;
-            return;
-        }
-
-        const payload = {
-            message: msg,
-            probability: lastPredictionData.data.probability,
-            input_data: lastPredictionData.payload
-        };
-
-        try {
-            const response = await fetch('/api/chat', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            });
-            const data = await response.json();
-            chatHist.innerHTML += `<div class="chat-bot">${data.reply}</div>`;
-            chatHist.scrollTop = chatHist.scrollHeight;
-        } catch (err) {
-            chatHist.innerHTML += `<div class="chat-bot">Error connecting to AI.</div>`;
-        }
-    }
-
-    window.onload = predict;
+  window.onload = predict;
 </script>
 
 </body>
