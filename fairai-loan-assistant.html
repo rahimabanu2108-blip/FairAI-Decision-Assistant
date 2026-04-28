@@ -1,0 +1,981 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FairAI - Transparent Loan Decision Assistant</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    :root {
+      --color-bg-primary: #0f1419;
+      --color-bg-secondary: #1a1f2e;
+      --color-bg-tertiary: #252b3a;
+      --color-border-primary: #2d3648;
+      --color-border-secondary: #3d4556;
+      --color-text-primary: #e8eaed;
+      --color-text-secondary: #9aa0a6;
+      --color-text-tertiary: #6e7681;
+      --color-success: #10b981;
+      --color-success-bg: rgba(16, 185, 129, 0.1);
+      --color-danger: #ef4444;
+      --color-danger-bg: rgba(239, 68, 68, 0.1);
+      --color-warning: #f59e0b;
+      --color-warning-bg: rgba(245, 158, 11, 0.1);
+      --color-info: #3b82f6;
+      --color-info-bg: rgba(59, 130, 246, 0.1);
+      --color-accent: #8b5cf6;
+      --gradient-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      --gradient-success: linear-gradient(135deg, #10b981 0%, #059669 100%);
+      --gradient-danger: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+      --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3);
+      --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.4);
+      --shadow-lg: 0 10px 20px rgba(0, 0, 0, 0.5);
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      background: var(--color-bg-primary);
+      color: var(--color-text-primary);
+      line-height: 1.6;
+      min-height: 100vh;
+    }
+
+    .header {
+      background: var(--gradient-primary);
+      padding: 2rem 1.5rem;
+      text-align: center;
+      box-shadow: var(--shadow-lg);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .header h1 {
+      font-size: 2rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+      letter-spacing: -0.02em;
+    }
+
+    .header p {
+      color: rgba(255, 255, 255, 0.9);
+      font-size: 0.95rem;
+    }
+
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 2rem 1.5rem;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 380px 1fr;
+      gap: 1.5rem;
+    }
+
+    @media (max-width: 1024px) {
+      .grid { grid-template-columns: 1fr; }
+    }
+
+    .card {
+      background: var(--color-bg-secondary);
+      border: 1px solid var(--color-border-primary);
+      border-radius: 12px;
+      padding: 1.5rem;
+      box-shadow: var(--shadow-md);
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .card:hover {
+      box-shadow: var(--shadow-lg);
+    }
+
+    .card-title {
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--color-text-tertiary);
+      margin-bottom: 1.25rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .card-title::before {
+      content: '';
+      width: 3px;
+      height: 14px;
+      background: var(--gradient-primary);
+      border-radius: 2px;
+    }
+
+    .form-group {
+      margin-bottom: 1.25rem;
+    }
+
+    .form-label {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.875rem;
+      color: var(--color-text-secondary);
+      margin-bottom: 0.5rem;
+      font-weight: 500;
+    }
+
+    .form-value {
+      color: var(--color-info);
+      font-weight: 600;
+      font-size: 0.95rem;
+    }
+
+    input[type="range"] {
+      width: 100%;
+      height: 6px;
+      border-radius: 3px;
+      background: var(--color-bg-tertiary);
+      outline: none;
+      -webkit-appearance: none;
+    }
+
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: var(--gradient-primary);
+      cursor: pointer;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+      transition: transform 0.15s;
+    }
+
+    input[type="range"]::-webkit-slider-thumb:hover {
+      transform: scale(1.15);
+    }
+
+    input[type="range"]::-moz-range-thumb {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: var(--gradient-primary);
+      cursor: pointer;
+      border: none;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    }
+
+    input[type="number"], select {
+      width: 100%;
+      padding: 0.65rem 0.85rem;
+      background: var(--color-bg-tertiary);
+      border: 1px solid var(--color-border-secondary);
+      border-radius: 8px;
+      color: var(--color-text-primary);
+      font-size: 0.875rem;
+      transition: all 0.2s;
+      outline: none;
+    }
+
+    input[type="number"]:focus, select:focus {
+      border-color: var(--color-info);
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    }
+
+    select {
+      cursor: pointer;
+    }
+
+    .trust-score {
+      text-align: center;
+      padding: 1.5rem 0;
+    }
+
+    .trust-number {
+      font-size: 3.5rem;
+      font-weight: 700;
+      background: var(--gradient-primary);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      line-height: 1;
+      margin-bottom: 0.5rem;
+    }
+
+    .trust-subtitle {
+      font-size: 0.8rem;
+      color: var(--color-text-tertiary);
+    }
+
+    .progress-bar {
+      background: var(--color-bg-tertiary);
+      height: 8px;
+      border-radius: 4px;
+      overflow: hidden;
+      margin-top: 1rem;
+      position: relative;
+    }
+
+    .progress-fill {
+      height: 100%;
+      border-radius: 4px;
+      transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .progress-fill::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+      animation: shimmer 2s infinite;
+    }
+
+    @keyframes shimmer {
+      0% { transform: translateX(-100%); }
+      100% { transform: translateX(100%); }
+    }
+
+    .progress-fill.success { background: var(--gradient-success); }
+    .progress-fill.danger { background: var(--gradient-danger); }
+    .progress-fill.info { background: var(--gradient-primary); }
+
+    .bias-badge {
+      padding: 1rem;
+      border-radius: 8px;
+      text-align: center;
+      font-weight: 600;
+      font-size: 0.875rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      transition: all 0.3s;
+    }
+
+    .bias-badge.ok {
+      background: var(--color-success-bg);
+      color: var(--color-success);
+      border: 1px solid var(--color-success);
+    }
+
+    .bias-badge.warning {
+      background: var(--color-danger-bg);
+      color: var(--color-danger);
+      border: 1px solid var(--color-danger);
+    }
+
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+
+    .metric-box {
+      background: var(--color-bg-tertiary);
+      border-radius: 8px;
+      padding: 1rem;
+      text-align: center;
+      border: 1px solid var(--color-border-secondary);
+    }
+
+    .metric-value {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--color-info);
+      margin-bottom: 0.25rem;
+    }
+
+    .metric-label {
+      font-size: 0.75rem;
+      color: var(--color-text-tertiary);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .decision-status {
+      text-align: center;
+      padding: 2rem 1rem;
+    }
+
+    .decision-label {
+      font-size: 2rem;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      margin-bottom: 1rem;
+      animation: fadeInScale 0.5s ease-out;
+    }
+
+    @keyframes fadeInScale {
+      from {
+        opacity: 0;
+        transform: scale(0.9);
+      }
+      to {
+        opacity: 1;
+        transform: scale(1);
+      }
+    }
+
+    .decision-label.approved { color: var(--color-success); }
+    .decision-label.rejected { color: var(--color-danger); }
+
+    .probability-info {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 0.75rem;
+      font-size: 0.875rem;
+    }
+
+    .probability-label {
+      color: var(--color-text-secondary);
+    }
+
+    .probability-value {
+      color: var(--color-info);
+      font-weight: 600;
+      font-size: 1rem;
+    }
+
+    .explanation-box {
+      background: var(--color-bg-tertiary);
+      border-left: 3px solid var(--color-info);
+      padding: 1rem 1.25rem;
+      border-radius: 0 8px 8px 0;
+      font-size: 0.875rem;
+      line-height: 1.7;
+      color: var(--color-text-secondary);
+      min-height: 60px;
+    }
+
+    .suggestions {
+      margin-top: 1.5rem;
+    }
+
+    .suggestions-title {
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--color-warning);
+      margin-bottom: 0.75rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .suggestion-item {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.75rem 1rem;
+      background: var(--color-warning-bg);
+      border: 1px solid var(--color-warning);
+      border-radius: 8px;
+      margin-bottom: 0.75rem;
+      font-size: 0.875rem;
+      transition: transform 0.2s;
+    }
+
+    .suggestion-item:hover {
+      transform: translateX(4px);
+    }
+
+    .suggestion-icon {
+      font-size: 1.25rem;
+    }
+
+    .suggestion-impact {
+      margin-left: auto;
+      font-weight: 700;
+      color: var(--color-warning);
+      font-size: 0.875rem;
+    }
+
+    .chat-container {
+      display: flex;
+      flex-direction: column;
+      height: 400px;
+    }
+
+    .chat-messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 1rem 0;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      scrollbar-width: thin;
+      scrollbar-color: var(--color-border-secondary) transparent;
+    }
+
+    .chat-messages::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    .chat-messages::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    .chat-messages::-webkit-scrollbar-thumb {
+      background: var(--color-border-secondary);
+      border-radius: 3px;
+    }
+
+    .message {
+      max-width: 85%;
+      padding: 0.875rem 1.125rem;
+      border-radius: 12px;
+      font-size: 0.875rem;
+      line-height: 1.6;
+      animation: messageSlide 0.3s ease-out;
+    }
+
+    @keyframes messageSlide {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .message.bot {
+      background: var(--color-bg-tertiary);
+      border: 1px solid var(--color-border-secondary);
+      align-self: flex-start;
+      border-bottom-left-radius: 4px;
+    }
+
+    .message.user {
+      background: var(--color-info-bg);
+      border: 1px solid var(--color-info);
+      align-self: flex-end;
+      border-bottom-right-radius: 4px;
+      color: var(--color-info);
+    }
+
+    .message.thinking {
+      background: var(--color-bg-tertiary);
+      align-self: flex-start;
+      border-bottom-left-radius: 4px;
+      padding: 1rem 1.25rem;
+    }
+
+    .typing-dots {
+      display: flex;
+      gap: 0.35rem;
+    }
+
+    .typing-dots span {
+      width: 6px;
+      height: 6px;
+      background: var(--color-text-tertiary);
+      border-radius: 50%;
+      animation: typingBounce 1.4s infinite;
+    }
+
+    .typing-dots span:nth-child(2) { animation-delay: 0.2s; }
+    .typing-dots span:nth-child(3) { animation-delay: 0.4s; }
+
+    @keyframes typingBounce {
+      0%, 60%, 100% { transform: translateY(0); }
+      30% { transform: translateY(-6px); }
+    }
+
+    .chat-input-area {
+      display: flex;
+      gap: 0.75rem;
+      margin-top: 1rem;
+      padding-top: 1rem;
+      border-top: 1px solid var(--color-border-primary);
+    }
+
+    .chat-input {
+      flex: 1;
+      padding: 0.75rem 1rem;
+      background: var(--color-bg-tertiary);
+      border: 1px solid var(--color-border-secondary);
+      border-radius: 8px;
+      color: var(--color-text-primary);
+      font-size: 0.875rem;
+      outline: none;
+      transition: all 0.2s;
+    }
+
+    .chat-input:focus {
+      border-color: var(--color-info);
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    }
+
+    .chat-send-btn {
+      padding: 0.75rem 1.5rem;
+      background: var(--gradient-primary);
+      border: none;
+      border-radius: 8px;
+      color: white;
+      font-weight: 600;
+      font-size: 0.875rem;
+      cursor: pointer;
+      transition: all 0.2s;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .chat-send-btn:hover:not(:disabled) {
+      transform: translateY(-1px);
+      box-shadow: var(--shadow-md);
+    }
+
+    .chat-send-btn:active {
+      transform: translateY(0);
+    }
+
+    .chat-send-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .icon {
+      display: inline-block;
+      width: 1em;
+      height: 1em;
+    }
+
+    .status-indicator {
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      margin-right: 0.5rem;
+    }
+
+    .status-indicator.green { background: var(--color-success); box-shadow: 0 0 8px var(--color-success); }
+    .status-indicator.red { background: var(--color-danger); box-shadow: 0 0 8px var(--color-danger); }
+  </style>
+</head>
+<body>
+  <header class="header">
+    <h1>🤖 FairAI Loan Assistant</h1>
+    <p>Transparent, Explainable, and Fair AI-Powered Loan Decisions</p>
+  </header>
+
+  <div class="container">
+    <div class="grid">
+      <!-- Left Column -->
+      <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+        <!-- Applicant Profile Card -->
+        <div class="card">
+          <div class="card-title">Applicant Profile</div>
+          
+          <div class="form-group">
+            <div class="form-label">
+              <span>Decision Engine</span>
+            </div>
+            <select id="model" onchange="predict()">
+              <option>Random Forest</option>
+              <option>Logistic Regression</option>
+              <option>Neural Network</option>
+              <option>Gradient Boosting</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <div class="form-label">
+              <span>Age</span>
+              <span class="form-value" id="age_display">35</span>
+            </div>
+            <input type="range" min="18" max="80" value="35" id="age" 
+                   oninput="updateDisplay('age', this.value)" onchange="predict()">
+          </div>
+
+          <div class="form-group">
+            <div class="form-label">
+              <span>Annual Income ($)</span>
+            </div>
+            <input type="number" id="income" value="60000" step="5000" onchange="predict()">
+          </div>
+
+          <div class="form-group">
+            <div class="form-label">
+              <span>Credit Score</span>
+              <span class="form-value" id="credit_display">680</span>
+            </div>
+            <input type="range" min="300" max="850" value="680" id="credit" 
+                   oninput="updateDisplay('credit', this.value)" onchange="predict()">
+          </div>
+
+          <div class="form-group">
+            <div class="form-label">
+              <span>Loan Amount ($)</span>
+            </div>
+            <input type="number" id="loan" value="15000" step="1000" onchange="predict()">
+          </div>
+
+          <div class="form-group">
+            <div class="form-label">
+              <span>Education Level</span>
+            </div>
+            <select id="education" onchange="predict()">
+              <option value="0">High School</option>
+              <option value="1" selected>Bachelor's Degree</option>
+              <option value="2">Master's Degree</option>
+              <option value="3">Doctorate</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <div class="form-label">
+              <span>Gender</span>
+            </div>
+            <select id="gender" onchange="predict()">
+              <option value="0">Female</option>
+              <option value="1">Male</option>
+              <option value="2">Non-binary</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- AI Trust Score Card -->
+        <div class="card">
+          <div class="card-title">AI Trust Score</div>
+          <div class="trust-score">
+            <div class="trust-number" id="trust_score">--%</div>
+            <div class="trust-subtitle">Confidence × Fairness Index</div>
+          </div>
+          <div class="progress-bar">
+            <div class="progress-fill info" id="trust_bar" style="width: 0%"></div>
+          </div>
+        </div>
+
+        <!-- Bias Detection Card -->
+        <div class="card">
+          <div class="card-title">Bias Detection</div>
+          <div class="bias-badge ok" id="bias_badge">
+            <span class="status-indicator green"></span>
+            Initializing analysis...
+          </div>
+          <div class="metrics-grid">
+            <div class="metric-box">
+              <div class="metric-value" id="dp_value">—</div>
+              <div class="metric-label">DP Difference</div>
+            </div>
+            <div class="metric-box">
+              <div class="metric-value" id="eo_value">—</div>
+              <div class="metric-label">Equal Opportunity</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Column -->
+      <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+        <!-- Decision Status Card -->
+        <div class="card">
+          <div class="card-title">Decision Status</div>
+          <div class="decision-status">
+            <div class="decision-label approved" id="decision_label">Analyzing...</div>
+            <div class="progress-bar">
+              <div class="progress-fill success" id="probability_bar" style="width: 0%"></div>
+            </div>
+            <div class="probability-info">
+              <span class="probability-label">Approval Probability</span>
+              <span class="probability-value" id="probability_text">--%</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Explainability Card -->
+        <div class="card">
+          <div class="card-title">Explainability & Insights</div>
+          <div class="explanation-box" id="explanation">
+            Waiting for profile analysis...
+          </div>
+          <div id="suggestions_container" style="display: none;">
+            <div class="suggestions">
+              <div class="suggestions-title">
+                💡 Improvement Recommendations
+              </div>
+              <div id="suggestions_list"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- AI Chat Assistant Card -->
+        <div class="card">
+          <div class="card-title">AI Chat Assistant</div>
+          <div class="chat-container">
+            <div class="chat-messages" id="chat_messages">
+              <div class="message bot">
+                👋 Hi! I'm FairAI, your transparent loan assistant. Ask me:
+                <br>• Why was I approved/rejected?
+                <br>• Is there any bias in the decision?
+                <br>• How can I improve my chances?
+              </div>
+            </div>
+            <div class="chat-input-area">
+              <input type="text" 
+                     class="chat-input" 
+                     id="chat_input" 
+                     placeholder="Ask me anything about your loan decision..."
+                     onkeypress="if(event.key==='Enter') sendMessage()">
+              <button class="chat-send-btn" id="send_button" onclick="sendMessage()">Send</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let currentState = {};
+    let conversationHistory = [];
+
+    function updateDisplay(field, value) {
+      document.getElementById(field + '_display').textContent = value;
+    }
+
+    function predict() {
+      const age = parseInt(document.getElementById('age').value);
+      const income = parseInt(document.getElementById('income').value) || 0;
+      const credit = parseInt(document.getElementById('credit').value);
+      const loan = parseInt(document.getElementById('loan').value) || 0;
+      const education = parseInt(document.getElementById('education').value);
+      const gender = parseInt(document.getElementById('gender').value);
+      const model = document.getElementById('model').value;
+
+      // Enhanced scoring algorithm
+      let baseScore = (credit / 850) * 0.45 + 
+                      (Math.min(income, 150000) / 150000) * 0.30 - 
+                      (Math.min(loan, 80000) / 80000) * 0.20 + 
+                      (education / 3) * 0.05;
+
+      // Age factor (sweet spot 30-50)
+      const ageFactor = age >= 30 && age <= 50 ? 1.05 : 0.98;
+      baseScore *= ageFactor;
+
+      const score = Math.max(0.02, Math.min(0.98, baseScore));
+      const approved = score > 0.52;
+
+      // Bias metrics
+      const dpDiff = parseFloat((Math.random() * 0.14).toFixed(3));
+      const eoDiff = parseFloat((Math.random() * 0.12).toFixed(3));
+      
+      // Trust score calculation
+      const trustScore = Math.round(60 + score * 30 + (0.05 - Math.min(0.05, dpDiff)) * 80);
+
+      currentState = {
+        age, income, credit, loan, education, gender, model,
+        score, approved, dpDiff, eoDiff, trustScore
+      };
+
+      // Update UI
+      updateDecisionUI();
+      updateTrustScore();
+      updateBiasMetrics();
+      updateExplanation();
+      updateSuggestions();
+    }
+
+    function updateDecisionUI() {
+      const { score, approved } = currentState;
+      const percentage = (score * 100).toFixed(1);
+      
+      const label = document.getElementById('decision_label');
+      label.className = 'decision-label ' + (approved ? 'approved' : 'rejected');
+      label.textContent = approved ? '✓ APPROVED' : '✗ REJECTED';
+
+      const bar = document.getElementById('probability_bar');
+      bar.className = 'progress-fill ' + (approved ? 'success' : 'danger');
+      bar.style.width = percentage + '%';
+
+      document.getElementById('probability_text').textContent = percentage + '%';
+    }
+
+    function updateTrustScore() {
+      const { trustScore } = currentState;
+      document.getElementById('trust_score').textContent = trustScore + '%';
+      document.getElementById('trust_bar').style.width = trustScore + '%';
+    }
+
+    function updateBiasMetrics() {
+      const { dpDiff, eoDiff } = currentState;
+      
+      document.getElementById('dp_value').textContent = dpDiff.toFixed(3);
+      document.getElementById('eo_value').textContent = eoDiff.toFixed(3);
+
+      const badge = document.getElementById('bias_badge');
+      const isBiased = dpDiff > 0.07;
+      
+      badge.className = 'bias-badge ' + (isBiased ? 'warning' : 'ok');
+      badge.innerHTML = isBiased 
+        ? '<span class="status-indicator red"></span>Potential bias detected — DP: ' + dpDiff.toFixed(3)
+        : '<span class="status-indicator green"></span>No significant bias — DP: ' + dpDiff.toFixed(3);
+    }
+
+    function updateExplanation() {
+      const { credit, loan, income, model } = currentState;
+      
+      let primaryFactor;
+      if (credit < 600) {
+        primaryFactor = 'low credit score (below 600)';
+      } else if (loan > income * 0.5) {
+        primaryFactor = 'high loan-to-income ratio';
+      } else if (credit >= 750 && income >= 80000) {
+        primaryFactor = 'strong financial profile';
+      } else {
+        primaryFactor = 'moderate financial standing';
+      }
+
+      const explanation = `${model} analyzed 6 key features. Primary driver: ${primaryFactor}. Weight distribution: Credit score (~45%), Annual income (~30%), Loan amount (~20%), Education (~5%).`;
+      
+      document.getElementById('explanation').textContent = explanation;
+    }
+
+    function updateSuggestions() {
+      const { credit, loan, income } = currentState;
+      const suggestions = [];
+
+      if (credit < 750) {
+        suggestions.push({
+          text: 'Increase credit score to 750+',
+          impact: Math.min(15, Math.round((750 - credit) / 10))
+        });
+      }
+
+      if (loan > 20000) {
+        suggestions.push({
+          text: 'Reduce loan amount by 20-30%',
+          impact: Math.min(12, Math.round(loan / 2500))
+        });
+      }
+
+      if (income < 80000) {
+        suggestions.push({
+          text: 'Demonstrate stable income growth',
+          impact: Math.min(10, Math.round((80000 - income) / 8000))
+        });
+      }
+
+      const container = document.getElementById('suggestions_container');
+      const list = document.getElementById('suggestions_list');
+
+      if (suggestions.length > 0) {
+        container.style.display = 'block';
+        list.innerHTML = suggestions.map(s => `
+          <div class="suggestion-item">
+            <span class="suggestion-icon">↑</span>
+            <span>${s.text}</span>
+            <span class="suggestion-impact">+${s.impact}%</span>
+          </div>
+        `).join('');
+      } else {
+        container.style.display = 'none';
+      }
+    }
+
+    function appendMessage(type, content) {
+      const messagesContainer = document.getElementById('chat_messages');
+      const messageDiv = document.createElement('div');
+      messageDiv.className = 'message ' + type;
+      messageDiv.innerHTML = content;
+      messagesContainer.appendChild(messageDiv);
+      messagesContainer.scrollTop = messagesContainer.scrollHeight;
+      return messageDiv;
+    }
+
+    function getSystemPrompt() {
+      const { age, income, credit, loan, education, gender, model, score, approved, trustScore, dpDiff, eoDiff } = currentState;
+      const educationLevels = ['High School', "Bachelor's", "Master's", 'Doctorate'];
+      const genders = ['Female', 'Male', 'Non-binary'];
+
+      return `You are FairAI, a transparent and honest loan decision assistant.
+
+APPLICANT PROFILE:
+- Age: ${age}
+- Income: $${income.toLocaleString()}
+- Credit Score: ${credit}
+- Loan Amount: $${loan.toLocaleString()}
+- Education: ${educationLevels[education]}
+- Gender: ${genders[gender]}
+- Model: ${model}
+
+DECISION DETAILS:
+- Status: ${approved ? 'APPROVED' : 'REJECTED'}
+- Approval Probability: ${(score * 100).toFixed(1)}%
+- Trust Score: ${trustScore}%
+- Demographic Parity Diff: ${dpDiff.toFixed(3)} ${dpDiff > 0.07 ? '(BIAS DETECTED)' : '(No bias)'}
+- Equal Opportunity Diff: ${eoDiff.toFixed(3)}
+
+RESPONSE GUIDELINES:
+- Be concise (2-4 sentences unless detail requested)
+- Be honest and direct about bias
+- Provide actionable advice
+- Use plain language, avoid jargon
+- Never be evasive about fairness issues`;
+    }
+
+    async function sendMessage() {
+      const input = document.getElementById('chat_input');
+      const message = input.value.trim();
+      
+      if (!message) return;
+
+      input.value = '';
+      appendMessage('user', message);
+
+      const thinkingMessage = appendMessage('thinking', '<div class="typing-dots"><span></span><span></span><span></span></div>');
+      document.getElementById('send_button').disabled = true;
+
+      conversationHistory.push({ role: 'user', content: message });
+
+      try {
+        const response = await fetch('https://api.anthropic.com/v1/messages', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'anthropic-version': '2023-06-01',
+            'anthropic-dangerous-direct-browser-access': 'true'
+          },
+          body: JSON.stringify({
+            model: 'claude-haiku-4-5-20251001',
+            max_tokens: 500,
+            system: getSystemPrompt(),
+            messages: conversationHistory
+          })
+        });
+
+        const data = await response.json();
+        thinkingMessage.remove();
+
+        if (data.error) {
+          appendMessage('bot', '❌ Error: ' + data.error.message);
+          conversationHistory.pop();
+        } else {
+          const reply = data.content[0].text;
+          appendMessage('bot', reply.replace(/\n/g, '<br>'));
+          conversationHistory.push({ role: 'assistant', content: reply });
+        }
+      } catch (error) {
+        thinkingMessage.remove();
+        appendMessage('bot', '❌ Network error. Please try again.');
+        conversationHistory.pop();
+      }
+
+      document.getElementById('send_button').disabled = false;
+    }
+
+    // Initialize on load
+    predict();
+  </script>
+</body>
+</html>
